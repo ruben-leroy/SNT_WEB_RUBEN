@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le Clicker Malicieux de Larry</title>
+<style>
+  :root {
+    --encre: #1d1b3a;
+    --fond: #bfe3ff;
+    --carte: #ffffff;
+    --accent: #ff5d8f;
+  }
+  body[data-stade="2"] { --fond: #797682 }
+  body[data-stade="3"] { --fond: #C7B899 }
+  body[data-stade="4"] { --fond: #98A0B3 }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 1.5rem;
+    padding: 2rem 1rem 3rem;
+    background: var(--fond);
+    color: var(--encre);
+    font-family: "Trebuchet MS", "Arial Rounded MT Bold", system-ui, sans-serif;
+    transition: background 0.6s;
+  }
+  h1 { margin: 0; font-size: clamp(2rem, 6vw, 3.2rem); letter-spacing: -0.02em; }
+
+  /* Textes et images qui changent selon le stade */
+  .s1, .s2, .s3, .s4 { display: none; }
+  body[data-stade="1"] .s1,
+  body[data-stade="2"] .s2,
+  body[data-stade="3"] .s3,
+  body[data-stade="4"] .s4 { display: block; }
+
+  .stade { margin: 0; font-size: 1.3rem; font-weight: bold; text-align: center; }
+  .score { margin: 0; font-size: 3.5rem; font-weight: bold; line-height: 1; text-align: center; }
+  .detail { margin: 0.3rem 0 0; text-align: center; }
+
+  .chat {
+    width: min(78vw, 320px);
+    aspect-ratio: 1;
+    border: 4px dashed var(--encre);
+    border-radius: 50%;
+    background: var(--carte);
+    color: var(--encre);
+    font: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.08s;
+  }
+  .chat:active { transform: scale(0.93); }
+  .chat img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+  .boutique { width: min(100%, 420px); display: grid; gap: 0.7rem; }
+  .boutique h2 { margin: 0; font-size: 1.3rem; }
+  .achat {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.8rem 1rem;
+    border: 3px solid var(--encre);
+    border-radius: 14px;
+    background: var(--carte);
+    color: var(--encre);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .achat:hover:not(:disabled) { background: var(--accent); }
+  .achat:disabled { opacity: 0.45; cursor: not-allowed; }
+.plus {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: var(--accent);
+  animation: monte 0.8s forwards;
+}
+@keyframes monte { to { transform: translate(-50%, -200%); opacity: 0; } }
+  :focus-visible { outline: 4px solid var(--accent); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) {
+    body, .chat { transition: none; }
+  }
+</style>
+</head>
+<body data-stade="1">
+
+<h1>Le Clicker malicieux de Larry</h1>
+
+<div>
+  <p class="stade">
+    <span class="s1">Chaton de base</span>
+    <span class="s2">Chat malicieux</span>
+    <span class="s3">Bras droit de larry</span>
+    <span class="s4">Maitre du Malice</span>
+  </p>
+  <p class="score"><span id="score">0</span> clics</p>
+  <p class="detail"><span id="par-clic">1</span> par clic · <span id="par-sec">0</span> par seconde</p>
+</div>
+
+
+<button class="chat" id="chat" aria-label="Cliquer sur le chat">
+  <em class="s1"><img src="image1.jpg" alt="Chaton de base"></em>
+  <em class="s2"><img src="image2.jpg" alt="Chat malicieux"></em>
+  <em class="s3"><img src="image4.jpg" alt="Bras droit de larry"></em>
+  <em class="s4"><img src="image3.jpg" alt="Maitre du Malice"></em>
+</button>
+
+<section class="boutique">
+  <h2>boutique malicieuse</h2>
+  <button class="achat" data-cout="20" data-clic="1" data-auto="0">
+    <strong>regard de Larry</strong>
+    <span>+1 par clic · coût : <b class="prix">20</b></span>
+  </button>
+  <button class="achat" data-cout="50" data-clic="0" data-auto="1">
+    <strong>Clef de l'electricien</strong>
+    <span>+1 clic par seconde · coût : <b class="prix">50</b></span>
+  </button>
+  <button class="achat" data-cout="200" data-clic="5" data-auto="0">
+    <strong>Aura Malicieuse</strong>
+    <span>+5 par clic · coût : <b class="prix">200</b></span>
+  </button>
+</section>
+
+<script>
+  let clics = 0, total = 0, parClic = 1, auto = 0;
+  const $ = id => document.getElementById(id);
+  const achats = document.querySelectorAll(".achat");
+
+  function maj() {
+    $("score").textContent = clics;
+    $("par-clic").textContent = parClic;
+    $("par-sec").textContent = auto;
+    document.body.dataset.stade = total >= 1000 ? 4 : total >= 300 ? 3 : total >= 50 ? 2 : 1;
+    achats.forEach(b => b.disabled = clics < +b.dataset.cout);
+  }
+
+ $("chat").onclick = e => {
+  clics += parClic; total += parClic; maj();
+
+  const p = document.createElement("span");
+  p.className = "plus";
+  p.textContent = "+" + parClic;
+  p.style.left = e.clientX + "px";
+  p.style.top = e.clientY + "px";
+  document.body.append(p);
+  setTimeout(() => p.remove(), 800);
+};
+
+  achats.forEach(b => b.onclick = () => {
+    const cout = +b.dataset.cout;
+    clics -= cout;
+    parClic += +b.dataset.clic;
+    auto += +b.dataset.auto;
+    b.dataset.cout = Math.ceil(cout * 1.5);
+    b.querySelector(".prix").textContent = b.dataset.cout;
+    maj();
+  });
+
+  setInterval(() => { clics += auto; total += auto; maj(); }, 1000);
+  maj();
+</script>
+</body>
+</html>
